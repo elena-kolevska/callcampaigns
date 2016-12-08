@@ -18,7 +18,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:api');
 
 
-Route::post('login', 'LoginController@login');
+//Route::post('login', 'App\Http\Controllers\Auth@login');
 
 Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
     Route::get('', 'CampaignsController@index');

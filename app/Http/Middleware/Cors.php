@@ -21,13 +21,15 @@ class Cors
             $origin = $request->server()['HTTP_ORIGIN'];
 
             if (in_array($origin, $domains)){
-                return $next($request)
-                    ->header('Access-Control-Allow-Origin', $origin)
-                    ->header('Access-Control-Allow-Headers','Origin, Content-Type, Authorization')
-                    ->header('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
+                $r = $next($request);
+                $r->headers->set('Access-Control-Allow-Origin', $origin);
+                $r->headers->set('Access-Control-Allow-Headers','Origin, Content-Type, Authorization');
+                $r->headers->set('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
+
+                return $r;
             }
         }
 
         return $next($request);
-        }
+    }
 }
