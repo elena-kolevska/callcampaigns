@@ -15,7 +15,7 @@ class Cors
      */
     public function handle($request, Closure $next)
     {
-        $domains = ["http://192.168.22.10:3000"];
+        $domains = ["http://192.168.22.10:3000", "http://localhost:8080"];
 
         if (isset($request->server()['HTTP_ORIGIN'])){
             $origin = $request->server()['HTTP_ORIGIN'];
@@ -23,7 +23,7 @@ class Cors
             if (in_array($origin, $domains)){
                 $r = $next($request);
                 $r->headers->set('Access-Control-Allow-Origin', $origin);
-                $r->headers->set('Access-Control-Allow-Headers','Origin, Content-Type, Authorization');
+                $r->headers->set('Access-Control-Allow-Headers','Origin, Content-Type, Authorization, X-CSRF-TOKEN');
                 $r->headers->set('Access-Control-Allow-Methods','GET, POST, PUT, DELETE, OPTIONS');
 
                 return $r;

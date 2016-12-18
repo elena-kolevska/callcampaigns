@@ -4,7 +4,7 @@
 apt-add-repository ppa:ondrej/php -y
 apt-get update
 
-# Install PHP Stuffs
+# Install PHP Stuff
 
 apt-get install -y --force-yes php7.0-cli php7.0-dev \
 php-pgsql php-sqlite3 php-gd php-apcu \

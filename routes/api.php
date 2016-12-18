@@ -12,6 +12,12 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Auth::routes();
+
+
+Route::any('test', function () {
+    return "it works";
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +28,7 @@ Route::get('/user', function (Request $request) {
 
 Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
     Route::get('', 'CampaignsController@index');
+    Route::get('{id}', 'CampaignsController@show');
     Route::post('', 'CampaignsController@store');
     Route::get('all', function(){
         return "all campaigns here";

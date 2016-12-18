@@ -15,7 +15,9 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
     static $password;
 
     return [
+        'id' => $faker->randomDigitNotNull,
         'name' => $faker->name,
+        'company_id' => $faker->randomNumber,
         'email' => $faker->unique()->safeEmail,
         'password' => $password ?: $password = bcrypt('secret'),
         'remember_token' => str_random(10),
@@ -30,6 +32,7 @@ $factory->define(App\Customers\Customer::class, function (Faker\Generator $faker
         'first_name' => $faker->firstName,
         'last_name' => $faker->lastName,
         'phone' => $faker->e164PhoneNumber,
+        'company_id' => $faker->randomNumber,
     ];
 });
 
@@ -37,11 +40,11 @@ $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker
     $faker->addProvider(new Faker\Provider\en_US\Company($faker));
 
     return [
-        "name"=>$faker->catchPhrase,
+        'company_id' => $faker->randomNumber,
+        "name"=>"Campaign " . $faker->catchPhrase,
         "description"=>$faker->text,
         "message"=>$faker->catchPhrase,
         "locale"=>$faker->locale,
-//        "file"=> $faker->,
     ];
 });
 
