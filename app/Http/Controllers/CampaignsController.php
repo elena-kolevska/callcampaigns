@@ -18,7 +18,12 @@ class CampaignsController extends Controller
     }
     public function store()
     {
+
         $input = request()->all();
+var_dump($input);
+var_dump("===========");
+        dd(request()->file('list'));
+
         $input['company_id'] = request()->user()->company_id;
         return \App\Campaigns\Campaign::create($input);
     }
