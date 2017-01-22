@@ -14,17 +14,31 @@ class CampaignsController extends Controller
     public function show($id)
     {
         $campaign = \App\Campaigns\Campaign::where('company_id', \Auth::user()->company_id)->find($id);
-        return $campaign;
+
+        return response()->json($campaign);
     }
-    public function store()
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function store(Request $request)
     {
+//dd($request->all());
 
-        $input = request()->all();
-var_dump($input);
-var_dump("===========");
-        dd(request()->file('list'));
 
-        $input['company_id'] = request()->user()->company_id;
-        return \App\Campaigns\Campaign::create($input);
+        //Validate
+        $this->validate($request, [
+            'name' => 'required|max:255',
+            'locale' => 'required',
+            'message' => 'required',
+        ]);
+//dd("gu");
+
+
+        //Save campaign
+        $campaign = \App\Campaigns\Campaign::createNew(\Auth::user(), $request);
+
+        return response()->json($campaign);
     }
 }

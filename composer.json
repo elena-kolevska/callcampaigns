@@ -9,7 +9,9 @@
         "laravel/framework": "5.3.*",
         "laravel/passport": "^1.0",
         "laravel-doctrine/orm": "1.2.*",
-        "bugsnag/bugsnag-laravel": "^2.0"
+        "bugsnag/bugsnag-laravel": "^2.0",
+        "predis/predis":"~1.0",
+        "pda/pheanstalk":"~3.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

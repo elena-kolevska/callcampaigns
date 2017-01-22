@@ -39,12 +39,17 @@ $factory->define(App\Customers\Customer::class, function (Faker\Generator $faker
 $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker) {
     $faker->addProvider(new Faker\Provider\en_US\Company($faker));
 
+    $company_id = $faker->randomNumber;
+    $file_name = $faker->word;
+
     return [
-        'company_id' => $faker->randomNumber,
+        'company_id' => $company_id,
         "name"=>"Campaign " . $faker->catchPhrase,
         "description"=>$faker->text,
         "message"=>$faker->catchPhrase,
         "locale"=>$faker->locale,
+        "list_path_local" => "lists_{$company_id}/{$file_name}.txt",
+        "list_path_remote" => ""
     ];
 });
 
