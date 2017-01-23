@@ -11,7 +11,8 @@ class Campaign extends Model
     protected $fillable = ['company_id', 'name','description', 'locale', 'message', 'list_path_local','list_path_remote'];
     protected $casts = [
         'id' => 'integer',
-        'company_id' => 'integer'
+        'company_id' => 'integer',
+        'list_content_processed' => 'boolean'
     ];
 
     static function createNew($user, $request)
@@ -41,6 +42,11 @@ class Campaign extends Model
         }
 
         return $campaign;
+    }
+
+    public function phoneNumbers()
+    {
+        return $this->hasMany('App\Campaigns\CampaignPhoneNumbers');
     }
 
 }

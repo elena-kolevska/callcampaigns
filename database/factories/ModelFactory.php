@@ -48,7 +48,7 @@ $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker
         "description"=>$faker->text,
         "message"=>$faker->catchPhrase,
         "locale"=>$faker->locale,
-        "list_path_local" => "lists_{$company_id}/{$file_name}.txt",
+        "list_path_local" => "lists_{$company_id}/{$file_name}.csv",
         "list_path_remote" => ""
     ];
 });
