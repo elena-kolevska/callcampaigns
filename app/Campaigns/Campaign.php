@@ -59,7 +59,7 @@ class Campaign extends Model
 
     public function setHumanReadableStatus()
     {
-        $this->status = self::STATUSES[$this->status];
+        $this->human_readable_status = self::STATUSES[$this->status];
     }
 
 }
