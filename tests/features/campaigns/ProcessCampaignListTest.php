@@ -46,6 +46,7 @@ class ProcessCampaignListTest extends TestCase
         $this->assertEquals(5, $campaign->phoneNumbers()->count());
         $campaign = Campaign::find($campaign->id);
         $this->assertTrue($campaign->list_content_processed);
+        $this->assertEquals('ready',$campaign->status);
 
         //Clean up
         Storage::delete($campaign->list_path_local);

@@ -7,8 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Campaign extends Model
 {
+    const STATUSES = [
+            'importing' => 'Importing...',
+            'ready' => 'Ready to be called',
+            'calling' => 'Calling...',
+            'completed' => 'Completed'
+        ];
+
     protected $guarded = [];
-    protected $fillable = ['company_id', 'name','description', 'locale', 'message', 'list_path_local','list_path_remote'];
+    protected $fillable = ['company_id', 'name','description', 'locale', 'message', 'options', 'list_path_local','list_path_remote', 'status'];
     protected $casts = [
         'id' => 'integer',
         'company_id' => 'integer',
@@ -28,10 +35,11 @@ class Campaign extends Model
             $file_path = $request->file('list')->store('lists_'.$user->company_id);
         }
 
-        $data = $request->only(['name','description','locale','message']);
+        $data = $request->only(['name','description','locale','message','options']);
         $data['list_path_local'] = $file_path;
         $data['user_id'] = $user->id;
         $data['company_id'] = $user->company_id;
+        $data['status'] = 'importing';
 
         $campaign =  parent::create($data);
 
@@ -47,6 +55,11 @@ class Campaign extends Model
     public function phoneNumbers()
     {
         return $this->hasMany('App\Campaigns\CampaignPhoneNumbers');
+    }
+
+    public function setHumanReadableStatus()
+    {
+        $this->status = self::STATUSES[$this->status];
     }
 
 }

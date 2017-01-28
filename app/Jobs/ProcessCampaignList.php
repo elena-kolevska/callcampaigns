@@ -68,7 +68,6 @@ class ProcessCampaignList implements ShouldQueue
 
         if (count($data_to_be_inserted)){
             CampaignPhoneNumbers::insert($data_to_be_inserted);
-            $data_to_be_inserted = [];
         }
 
         // Clear the memory, cause this worker will be running in a daemon
@@ -76,6 +75,7 @@ class ProcessCampaignList implements ShouldQueue
         unset($data_to_be_inserted);
 
         $this->campaign->list_content_processed = true;
+        $this->campaign->status = 'ready';
         $this->campaign->save();
         \Log::info('Job just ran ' . $this->campaign->id);
     }

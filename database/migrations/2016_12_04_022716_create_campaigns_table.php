@@ -19,7 +19,9 @@ class CreateCampaignsTable extends Migration
             $table->string('name',100);
             $table->string('description',500);
             $table->text('message');
+            $table->string('options', 2000)->default('[]');
             $table->string('locale',10);
+            $table->string('status',20)->notNull();
             $table->timestamps();
         });
     }

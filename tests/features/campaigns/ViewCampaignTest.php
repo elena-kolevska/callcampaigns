@@ -21,7 +21,7 @@ class ViewCampaignTest extends TestCase
         $campaign = factory(Campaign::class)->create([
             'company_id' => $user->company_id
         ]);
-
+$this->disableExceptionHandling();
         $this->json('GET', 'api/v1/campaigns/'. $campaign->id);
 
         $this->assertTrue($this->response->isOk());
@@ -32,6 +32,7 @@ class ViewCampaignTest extends TestCase
                     "description"=>$campaign->description,
                     "message"=>$campaign->message,
                     "locale"=>$campaign->locale,
+                    "status"=>'Importing...',
                 ]);
     }
 }

@@ -14,6 +14,7 @@ class CampaignsController extends Controller
     public function show($id)
     {
         $campaign = \App\Campaigns\Campaign::where('company_id', \Auth::user()->company_id)->find($id);
+        $campaign->setHumanReadableStatus();
 
         return response()->json($campaign);
     }
@@ -24,17 +25,12 @@ class CampaignsController extends Controller
      */
     public function store(Request $request)
     {
-//dd($request->all());
-
-
         //Validate
         $this->validate($request, [
             'name' => 'required|max:255',
             'locale' => 'required',
             'message' => 'required',
         ]);
-//dd("gu");
-
 
         //Save campaign
         $campaign = \App\Campaigns\Campaign::createNew(\Auth::user(), $request);

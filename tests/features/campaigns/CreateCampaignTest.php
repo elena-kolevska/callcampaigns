@@ -15,7 +15,7 @@ class CreateCampaignTest extends TestCase
 
 
     /** @test */
-    public function creates_campaign_on_endpoint_call()
+    public function creates_campaign_with_call_options_on_endpoint_call()
     {
         $user = factory(User::class)->make();
         $this->be($user);
@@ -28,13 +28,14 @@ class CreateCampaignTest extends TestCase
         // We're not passing a file in here
         // So a ProcessCampaignList job shouldn't be queued
         $this->doesntExpectJobs(ProcessCampaignList::class);
-
         $this->assertTrue($this->response->isOk());
         $this->seeJson([
                     "name"=>$campaign->name,
                     "company_id"=>$user->company_id,
                     "description"=>$campaign->description,
                     "message"=>$campaign->message,
+                    "options"=>$campaign->options,
+                    "status"=>'importing',
                     "locale"=>$campaign->locale,
                 ]);
     }

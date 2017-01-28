@@ -41,15 +41,21 @@ $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker
 
     $company_id = $faker->randomNumber;
     $file_name = $faker->word;
+    $call_options = [
+        ['digit' => 1, 'message' => 'Press one to...'],
+        ['digit' => 2, 'message' => 'Press two to...'],
+    ];
 
     return [
         'company_id' => $company_id,
         "name"=>"Campaign " . $faker->catchPhrase,
         "description"=>$faker->text,
         "message"=>$faker->catchPhrase,
+        "options" =>json_encode($call_options),
         "locale"=>$faker->locale,
         "list_path_local" => "lists_{$company_id}/{$file_name}.csv",
-        "list_path_remote" => ""
+        "list_path_remote" => "",
+        "status" => 'importing'
     ];
 });
 
