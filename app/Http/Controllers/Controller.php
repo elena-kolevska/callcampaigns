@@ -13,15 +13,6 @@ class Controller extends BaseController
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     /**
-     * Controller constructor.
-     */
-    public function __construct()
-    {
-        $this->currentUser = \Auth::user();
-    }
-
-
-    /**
      * This check prevents companies seeing each other's endpoints,
      * but allows superadmins to see everything
      *
@@ -29,7 +20,7 @@ class Controller extends BaseController
      */
     public function checkRights($company_id)
     {
-        if ($this->currentUser->company_id != $company_id AND !$this->currentUser->is_superadmin){
+        if (\Auth::user()->company_id != $company_id AND !\Auth::user()->is_superadmin){
             throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException('You shouldn\'t be requesting this');
         }
     }
