@@ -6,9 +6,14 @@ use Illuminate\Http\Request;
 
 class CampaignsController extends Controller
 {
+    //TODO NOT TESTED!!!!!
+    //TODO create a transformer
     public function index()
     {
         $campaigns = \App\Campaigns\Campaign::get();
+        foreach ($campaigns as $campaign) {
+            $campaign->setHumanReadableStatus();
+        }
         return $campaigns;
     }
     public function show($id)
@@ -36,5 +41,16 @@ class CampaignsController extends Controller
         $campaign = \App\Campaigns\Campaign::createNew(\Auth::user(), $request);
 
         return response()->json($campaign);
+    }
+
+    public function start($campaign_id)
+    {
+        $campaign = \App\Campaigns\Campaign::find($campaign_id);
+        $this->checkRights($campaign->company_id);
+
+        $campaign->start();
+        $campaign->save();
+
+        return $campaign;
     }
 }

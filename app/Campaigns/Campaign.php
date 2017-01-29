@@ -2,6 +2,7 @@
 
 namespace App\Campaigns;
 
+use App\Jobs\CallCampaignList;
 use App\Jobs\ProcessCampaignList;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,7 +46,7 @@ class Campaign extends Model
 
         // Queue the job of processing the list
         if ($file){
-            $job = (new ProcessCampaignList($campaign))->onQueue('campaign_lists');
+            $job = (new ProcessCampaignList($campaign))->onQueue('campaign_lists_to_be_processed');
             dispatch($job);
         }
 
@@ -60,6 +61,14 @@ class Campaign extends Model
     public function setHumanReadableStatus()
     {
         $this->human_readable_status = self::STATUSES[$this->status];
+    }
+
+    public function start()
+    {
+        $job = (new CallCampaignList($this))->onQueue('campaign_lists_to_be_called');
+        dispatch($job);
+
+        $this->status = 'calling';
     }
 
 }

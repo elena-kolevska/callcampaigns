@@ -41,6 +41,32 @@ class CreateCampaignTest extends TestCase
     }
 
     /** @test */
+    public function creates_campaign_without_call_options_on_endpoint_call()
+    {
+        $user = factory(User::class)->make();
+        $this->be($user);
+
+        $campaign = factory(Campaign::class)->make(['options'=>'[]']);
+
+
+        $this->json('POST', 'api/v1/campaigns/', $campaign->toArray());
+
+        // We're not passing a file in here
+        // So a ProcessCampaignList job shouldn't be queued
+        $this->doesntExpectJobs(ProcessCampaignList::class);
+        $this->assertTrue($this->response->isOk());
+        $this->seeJson([
+                    "name"=>$campaign->name,
+                    "company_id"=>$user->company_id,
+                    "description"=>$campaign->description,
+                    "message"=>$campaign->message,
+                    "options"=>$campaign->options,
+                    "status"=>'importing',
+                    "locale"=>$campaign->locale,
+                ]);
+    }
+
+    /** @test */
     public function name_is_needed_to_create_a_campaign()
     {
         $user = factory(User::class)->make();

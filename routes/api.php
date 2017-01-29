@@ -29,6 +29,7 @@ Route::get('/user', function (Request $request) {
 Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
     Route::get('', 'CampaignsController@index');
     Route::get('{id}', 'CampaignsController@show');
+    Route::post('{id}/start', 'CampaignsController@start');
     Route::post('', 'CampaignsController@store');
     Route::get('all', function(){
         return "all campaigns here";
