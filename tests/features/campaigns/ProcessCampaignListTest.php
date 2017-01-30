@@ -35,7 +35,6 @@ class ProcessCampaignListTest extends TestCase
         for ($i=0; $i < 5; $i++) {
             $rows[] = $faker->e164PhoneNumber;
         }
-
         $file->insertAll($rows);
 
         // Act
@@ -43,7 +42,14 @@ class ProcessCampaignListTest extends TestCase
         $jobProcessor->handle();
 
         // Assert
-        $this->assertEquals(5, $campaign->phoneNumbers()->count());
+        $inserted_rows_count = $campaign->phoneNumbers()
+            ->whereIn('phone_number',$rows)
+            ->where('call_status_id',config('aj.call_statuses')['not_called']['id'])
+            ->where('client_response','')
+            ->where('call_hangup_status','')
+            ->count();
+        $this->assertEquals(5, $inserted_rows_count);
+
         $campaign = Campaign::find($campaign->id);
         $this->assertTrue($campaign->list_content_processed);
         $this->assertEquals('ready',$campaign->status);
@@ -79,7 +85,14 @@ class ProcessCampaignListTest extends TestCase
         $jobProcessor->handle();
 
         // Assert
-        $this->assertEquals(1003, $campaign->phoneNumbers()->count());
+        $inserted_rows_count = $campaign->phoneNumbers()
+            ->whereIn('phone_number',$rows)
+            ->where('call_status_id',config('aj.call_statuses')['not_called']['id'])
+            ->where('client_response','')
+            ->where('call_hangup_status','')
+            ->count();
+        $this->assertEquals(1003, $inserted_rows_count);
+
         $campaign = Campaign::find($campaign->id);
         $this->assertTrue($campaign->list_content_processed);
 

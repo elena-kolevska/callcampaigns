@@ -36,7 +36,6 @@ class ProcessCampaignList implements ShouldQueue
      */
     public function handle()
     {
-
         $file_path = storage_path() . '/app/' . $this->campaign->list_path_local;
         $reader = Reader::createFromPath($file_path);
 
@@ -47,6 +46,7 @@ class ProcessCampaignList implements ShouldQueue
         $i = 1;
         $j = 0;
         foreach ($results as $row) {
+            // This block just ignores the list headers
             if ($j == 0){
                 $j++;
                 continue;
@@ -54,9 +54,9 @@ class ProcessCampaignList implements ShouldQueue
 
             //do something here
             $row['campaign_id'] = $this->campaign->id;
-            $row['called'] = 0;
-            $row['response'] = '';
-            $row['call_status'] = '';
+            $row['client_response'] = '';
+            $row['call_status_id'] = config('aj.call_statuses')['not_called']['id'];
+            $row['call_hangup_status'] = '';
             $data_to_be_inserted[] = $row;
             $i++;
 

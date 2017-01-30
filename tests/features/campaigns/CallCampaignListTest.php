@@ -1,6 +1,7 @@
 <?php
 
 use App\Campaigns\Campaign;
+use App\Campaigns\CampaignPhoneNumbers;
 use App\Jobs\CallCampaignList;
 use App\User;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
@@ -53,12 +54,44 @@ class CallCampaignListTest extends TestCase
         ]);
         $this->be($user);
 
+        $this->disableExceptionHandling();
         $campaign = factory(Campaign::class)->create([
             'company_id' => $user->company_id + 1
         ]);
 
         $this->json('POST', 'api/v1/campaigns/'. $campaign->id . '/start');
         $this->assertTrue($this->response->isOk());
+    }
+
+    /** @test */
+    public function triggers_calls_to_numbers_from_campaign_list()
+    {
+        $faker = Faker\Factory::create();
+
+        //Arrange
+        // Create a campaign
+        $campaign = factory(Campaign::class)->create();
+
+        //Add 5 phone numbers in campaign
+        for ($i=0; $i < 5; $i++) {
+            $rows[] = [
+                'phone_number' => $faker->e164PhoneNumber,
+                'campaign_id' => $campaign->id,
+                'call_status_id' => config('aj.call_statuses')['not_called']['id'],
+                'client_response' => '',
+                'call_hangup_status' => '',
+            ];
+        }
+        CampaignPhoneNumbers::insert($rows);
+
+        //Act
+        $jobProcessor = new CallCampaignList($campaign);
+        $jobProcessor->handle();
+
+        //Assert
+        //5 calls have been triggered
+        // Campaign status is "completed"
+
     }
 
 }

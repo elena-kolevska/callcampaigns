@@ -14,11 +14,12 @@ class CreateCampaignPhoneNumbersTable extends Migration
     public function up()
     {
         Schema::create('campaign_phone_numbers', function (Blueprint $table) {
+            $table->increments('id');
             $table->unsignedInteger('campaign_id');
             $table->string('phone_number',15);
-            $table->boolean('called');
-            $table->string('response',1);
-            $table->string('call_status',20);
+            $table->smallInteger('call_status_id')->default(0);
+            $table->string('client_response',1);
+            $table->string('call_hangup_status',20);
         });
     }
 

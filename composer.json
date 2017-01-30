@@ -12,7 +12,8 @@
         "bugsnag/bugsnag-laravel": "^2.0",
         "predis/predis":"~1.0",
         "pda/pheanstalk":"~3.0",
-        "league/csv": "^8.1"
+        "league/csv": "^8.1",
+        "twilio/sdk": "^5.4"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
