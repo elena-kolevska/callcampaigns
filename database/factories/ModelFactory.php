@@ -42,8 +42,8 @@ $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker
     $company_id = $faker->randomNumber;
     $file_name = $faker->word;
     $call_options = [
-        ['digit' => 1, 'message' => 'Press one to do something.'],
-        ['digit' => 2, 'message' => 'Press two to do something else.'],
+        ['digit' => 1, 'label'=>'Option 1', 'message' => 'Press one to do something.','thank_you_message'=>'Thank you for pressing 1'],
+        ['digit' => 2, 'label'=>'Option 2', 'message' => 'Press two to do something else.','thank_you_message'=>'Thank you for pressing 2'],
     ];
 
     return [

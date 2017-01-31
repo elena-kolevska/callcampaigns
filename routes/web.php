@@ -19,12 +19,11 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index');
 
-Route::get('test', function () {
-//    $job = (new App\Jobs\ProcessCampaignList("path", 1))->onQueue('campaign_lists');
-//dd($job);
+Route::any('test', function () {
+    $campaign = \App\Campaigns\Campaign::find(63);
+    $campaign->status = 'completed';
+    $campaign->completed_at = \Carbon\Carbon::now();
+    $campaign->save();
 
-
-    \Cache::put("testkey12","aaaty",1);
-    return \Cache::get("testkey12");
-    return "hey";
 });
+

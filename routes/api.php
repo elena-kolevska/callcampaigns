@@ -14,11 +14,6 @@ use Illuminate\Http\Request;
 */
 Auth::routes();
 
-
-Route::any('test', function () {
-    return "it works";
-});
-
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');

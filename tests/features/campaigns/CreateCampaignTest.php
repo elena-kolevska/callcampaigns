@@ -34,7 +34,7 @@ class CreateCampaignTest extends TestCase
                     "company_id"=>$user->company_id,
                     "description"=>$campaign->description,
                     "message"=>$campaign->message,
-                    "options"=>$campaign->options,
+                    "options"=>json_decode($campaign->options),
                     "status"=>'importing',
                     "locale"=>$campaign->locale,
                 ]);
@@ -60,7 +60,7 @@ class CreateCampaignTest extends TestCase
                     "company_id"=>$user->company_id,
                     "description"=>$campaign->description,
                     "message"=>$campaign->message,
-                    "options"=>$campaign->options,
+                    "options"=>json_decode($campaign->options),
                     "status"=>'importing',
                     "locale"=>$campaign->locale,
                 ]);

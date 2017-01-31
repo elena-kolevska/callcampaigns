@@ -11,18 +11,22 @@ class CampaignsController extends Controller
 
     //TODO NOT TESTED!!!!!
     //TODO create a transformer
-    public function index()
+    public function index(Campaign $campaignModel)
     {
-        $campaigns = \App\Campaigns\Campaign::get();
+        $campaigns = $campaignModel->where('company_id', \Auth::user()->company_id)
+            ->orderBy('completed_at', 'desc')
+            ->get();
         foreach ($campaigns as $campaign) {
-            $campaign->setHumanReadableStatus();
+            $campaign->formatData();
         }
         return $campaigns;
     }
-    public function show($id)
+    public function show($id, Campaign $campaignModel)
     {
-        $campaign = \App\Campaigns\Campaign::where('company_id', \Auth::user()->company_id)->find($id);
-        $campaign->setHumanReadableStatus();
+        $campaign = $campaignModel->find($id);
+        $this->checkRights($campaign->company_id);
+
+        $campaign->formatData();
 
         return response()->json($campaign);
     }

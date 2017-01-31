@@ -73,6 +73,7 @@ class CallCampaignList implements ShouldQueue
         }
 
         $this->campaign->status = 'completed';
+        $this->campaign->completed_at = \Carbon\Carbon::now();
         $this->campaign->save();
 
     }
