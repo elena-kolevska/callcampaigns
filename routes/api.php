@@ -33,8 +33,8 @@ Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
 });
 
 Route::group(['prefix'=>'campaigns', ], function() {
-    Route::post('{id}/client/{campaign_phone_number_id}/answer', 'CampaignsController@callClientAnswer');
-    Route::post('{id}/client/{campaign_phone_number_id}/gather', 'CampaignsController@callReceiveClientInput');
+    Route::any('{id}/client/{campaign_phone_number_id}/answer', 'CampaignsController@callClientAnswer');
+    Route::any('{id}/client/{campaign_phone_number_id}/gather', 'CampaignsController@callReceiveClientInput');
 });
 
 
@@ -43,33 +43,33 @@ Route::group(['prefix'=>'customers'], function() {
 });
 
 
-//Route::get('start_call', function () {
-//    $client = new Twilio\Rest\Client(
-//        getenv('TWILIO_ACCOUNT_SID'),
-//        getenv('TWILIO_AUTH_TOKEN')
-//    );
-//
-//    try {
-//        $client->calls->create(
-//            '351914232900', // The visitor's phone number
-//            '351308811914', // A Twilio number in your account
-//            array(
-//                "url" => "http://600756e2.ngrok.io/api/v1/callback"
-//            )
-//        );
-//    } catch (Exception $e) {
-//        // Failed calls will throw
-//        return $e;
-//    }
-//
-//    return "Starting call";
-//});
+Route::get('start_call', function () {
+    $client = new Twilio\Rest\Client(
+        getenv('TWILIO_ACCOUNT_SID'),
+        getenv('TWILIO_AUTH_TOKEN')
+    );
+
+    try {
+        $client->calls->create(
+            '351914232900', // The visitor's phone number
+            '351308811914', // A Twilio number in your account
+            array(
+                "url" => "http://7bbba7e0.ngrok.io/api/v1/callback"
+            )
+        );
+    } catch (Exception $e) {
+        // Failed calls will throw
+        return $e;
+    }
+
+    return "Starting call";
+});
 
 Route::any('callback', function () {
     // A message for Twilio's TTS engine to repeat
     $sayMessage = 'Obrigada pela sua chamada. Prima 1 para falar comigo. Prima 2 se não quer ser contactado.';
 
-    $twiml = new Twilio\Twiml();
+    $twiml = new \Twilio\Twiml();
 
     // If the user entered digits, process their request
     if (array_key_exists('Digits', $_POST)) {

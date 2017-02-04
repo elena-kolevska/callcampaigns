@@ -100,6 +100,24 @@ class CampaignsController extends Controller
 
     public function callReceiveClientInput($campaign_id, $campaign_number_id, Campaign $campaignModel, CampaignPhoneNumbers $campaignPhoneNumberModel, Request $request)
     {
+        $campaign = $campaignModel->find($campaign_id);
+        $options = json_decode($campaign->options);
+        $selected_digit = $request->input('Digits');
+        $thank_you_message = '';
+
+        foreach ($options as $option) {
+            if ($option->digit == $selected_digit){
+                $thank_you_message = $option->thank_you_message;
+                break;
+            }
+        }
+
+        // Settings for the speak element
+        $speak_options = [
+            'voice' => 'alice',
+            'language' => $campaign->locale
+        ];
+
         $twiml = new \Twilio\Twiml();
 
         if (!$request->has('Digits')){
@@ -109,9 +127,10 @@ class CampaignsController extends Controller
         // Find and update the campaign phone number. Set status to "Call in progress"
         $campaign_phone_number = $campaignPhoneNumberModel->find($campaign_number_id);
         $campaign_phone_number->call_status_id = config('aj.call_statuses')['call_completed']['id'];
-        $campaign_phone_number->client_response = $request->input('Digits');
+        $campaign_phone_number->client_response = $selected_digit;
         $campaign_phone_number->save();
 
+        $twiml->say($thank_you_message, $speak_options);
         $twiml->hangup();
 
         $response = \Response::make($twiml, 200);
