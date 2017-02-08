@@ -33,6 +33,10 @@ class CallCampaignList implements ShouldQueue
      */
     public function handle()
     {
+        if (!$this->campaign){
+            return;
+        }
+
         $done = false;
 
         $client = new \Twilio\Rest\Client(

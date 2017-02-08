@@ -21,25 +21,33 @@ Route::get('/user', function (Request $request) {
 
 //Route::post('login', 'App\Http\Controllers\Auth@login');
 
+Route::group(['prefix'=>'campaigns', ], function() {
+    Route::any('{id}/client/{campaign_phone_number_id}/answer', 'CampaignsController@callClientAnswer');
+    Route::any('{id}/client/{campaign_phone_number_id}/gather', 'CampaignsController@callReceiveClientInput');
+    Route::any('call_status', 'CampaignsController@callStatusChange');
+});
+
+
 Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
     Route::get('', 'CampaignsController@index');
     Route::get('{id}', 'CampaignsController@show');
     Route::post('{id}/start', 'CampaignsController@start');
     Route::post('{id}/answer', 'CampaignsController@callAnswer');
+    Route::post('{id}/results', 'CampaignsController@downloadResults');
     Route::post('', 'CampaignsController@store');
     Route::get('all', function(){
         return "all campaigns here";
     });
 });
 
-Route::group(['prefix'=>'campaigns', ], function() {
-    Route::any('{id}/client/{campaign_phone_number_id}/answer', 'CampaignsController@callClientAnswer');
-    Route::any('{id}/client/{campaign_phone_number_id}/gather', 'CampaignsController@callReceiveClientInput');
-});
 
 
 Route::group(['prefix'=>'customers'], function() {
     Route::get('{id}', 'CustomersController@show');
+});
+
+Route::group(['prefix'=>'calls'], function() {
+    Route::post('end', 'CallsController@end');
 });
 
 

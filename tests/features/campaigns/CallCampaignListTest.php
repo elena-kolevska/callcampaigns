@@ -88,7 +88,7 @@ class CallCampaignListTest extends TestCase
 //        $jobProcessor->handle();
 
         //Assert
-        //5 calls have been triggered
+        // 5 calls have been triggered
         // Campaign status is "completed"
 
     }
