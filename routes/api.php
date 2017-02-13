@@ -33,7 +33,8 @@ Route::group(['prefix'=>'campaigns', 'middleware'=>['auth:api']], function() {
     Route::get('{id}', 'CampaignsController@show');
     Route::post('{id}/start', 'CampaignsController@start');
     Route::post('{id}/answer', 'CampaignsController@callAnswer');
-    Route::post('{id}/results', 'CampaignsController@downloadResults');
+    Route::get('{id}/results', 'CampaignsController@results');
+    Route::get('exports/{id}', 'CampaignsController@downloadResults');
     Route::post('', 'CampaignsController@store');
     Route::get('all', function(){
         return "all campaigns here";

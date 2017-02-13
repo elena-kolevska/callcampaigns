@@ -38,24 +38,31 @@ $factory->define(App\Customers\Customer::class, function (Faker\Generator $faker
 
 $factory->define(App\Campaigns\Campaign::class, function (Faker\Generator $faker) {
     $faker->addProvider(new Faker\Provider\en_US\Company($faker));
-
-    $company_id = $faker->randomNumber;
     $file_name = $faker->word;
-    $call_options = [
-        ['digit' => 1, 'label'=>'Option 1', 'message' => 'Press one to do something.','thank_you_message'=>'Thank you for pressing 1'],
-        ['digit' => 2, 'label'=>'Option 2', 'message' => 'Press two to do something else.','thank_you_message'=>'Thank you for pressing 2'],
-    ];
+    $company_id = $faker->randomNumber;
 
     return [
         'company_id' => $company_id,
         "name"=>"Campaign " . $faker->catchPhrase,
         "description"=>$faker->text,
         "message"=>$faker->catchPhrase,
-        "options" =>json_encode($call_options),
         "locale"=>$faker->locale,
         "list_path_local" => "lists_{$company_id}/{$file_name}.csv",
         "list_path_remote" => "",
         "status" => 'importing'
+    ];
+});
+
+$factory->define(App\Campaigns\CampaignOption::class, function (Faker\Generator $faker) {
+    $faker->addProvider(new Faker\Provider\en_US\Company($faker));
+
+    return [
+        'digit' => $faker->randomDigit,
+        'label' => $faker->word,
+        'message' => $faker->catchPhrase,
+        'thank_you_message' => $faker->catchPhrase,
+        'count' => $faker->randomNumber,
+        'exported_list_url' => '',
     ];
 });
 

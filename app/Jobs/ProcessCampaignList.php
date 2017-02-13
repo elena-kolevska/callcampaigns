@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Campaigns\Campaign;
-use App\Campaigns\CampaignPhoneNumbers;
+use App\Campaigns\CampaignPhoneNumber;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -36,15 +36,20 @@ class ProcessCampaignList implements ShouldQueue
      */
     public function handle()
     {
+        \Log::info("1");
+
         $file_path = storage_path() . '/app/' . $this->campaign->list_path_local;
         $reader = Reader::createFromPath($file_path);
 
-        $offset = 1;
         $keys = array('phone_number');
         $results = $reader->fetchAssoc($keys);
+        \Log::info("2");
 
+        $record_count = 0;
         $i = 1;
         $j = 0;
+        \Log::info("3");
+
         foreach ($results as $row) {
             // This block just ignores the list headers
             if ($j == 0){
@@ -54,21 +59,26 @@ class ProcessCampaignList implements ShouldQueue
 
             //do something here
             $row['campaign_id'] = $this->campaign->id;
-            $row['client_response'] = '';
-            $row['call_status_id'] = config('aj.call_statuses')['not_called']['id'];
+            $row['digit'] = '';
+            $row['call_status_id'] = config('aj.call_statuses_by_keyword')['not_called']['id'];
             $row['call_hangup_status'] = '';
             $data_to_be_inserted[] = $row;
             $i++;
+            $record_count++;
 
             if ($i >= 50){
-                CampaignPhoneNumbers::insert($data_to_be_inserted);
+                CampaignPhoneNumber::insert($data_to_be_inserted);
                 $data_to_be_inserted = [];
+                $i = 0;
             }
         }
+        \Log::info("4");
+        \Log::debug(count($data_to_be_inserted));
 
         if (count($data_to_be_inserted)){
-            CampaignPhoneNumbers::insert($data_to_be_inserted);
+            CampaignPhoneNumber::insert($data_to_be_inserted);
         }
+        \Log::info("5");
 
         // Clear the memory, cause this worker will be running in a daemon
         $data_to_be_inserted = null;
@@ -76,6 +86,11 @@ class ProcessCampaignList implements ShouldQueue
 
         $this->campaign->list_content_processed = true;
         $this->campaign->status = 'ready';
+        \Log::info("6");
+
+        $this->campaign->phone_number_count = $record_count;
+        \Log::info("7");
+
         $this->campaign->save();
         \Log::info('Job just ran ' . $this->campaign->id);
     }

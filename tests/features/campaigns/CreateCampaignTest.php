@@ -1,6 +1,7 @@
 <?php
 
 use App\Campaigns\Campaign;
+use App\Campaigns\CampaignOption;
 use App\User;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -22,6 +23,12 @@ class CreateCampaignTest extends TestCase
 
         $campaign = factory(Campaign::class)->make();
 
+        for($i=0; $i < 5; $i++){
+            $campaign_options[] = factory(CampaignOption::class)->make([
+                'count' => 0,
+            ])->toArray();
+        }
+        $campaign['options'] = json_encode($campaign_options);
 
         $this->json('POST', 'api/v1/campaigns/', $campaign->toArray());
 
@@ -34,10 +41,18 @@ class CreateCampaignTest extends TestCase
                     "company_id"=>$user->company_id,
                     "description"=>$campaign->description,
                     "message"=>$campaign->message,
-                    "options"=>json_decode($campaign->options),
                     "status"=>'importing',
                     "locale"=>$campaign->locale,
                 ]);
+        $this->seeJson([
+                    "digit"=>"invalid_answer",
+                ]);
+        $this->seeJson([
+                    "digit"=>"no_response",
+                ]);
+        $this->seeJsonStructure([
+            'options' => ['*'=>['digit','label', 'message','thank_you_message']]
+        ]);
     }
 
     /** @test */
@@ -46,8 +61,7 @@ class CreateCampaignTest extends TestCase
         $user = factory(User::class)->make();
         $this->be($user);
 
-        $campaign = factory(Campaign::class)->make(['options'=>'[]']);
-
+        $campaign = factory(Campaign::class)->make();
 
         $this->json('POST', 'api/v1/campaigns/', $campaign->toArray());
 
@@ -56,14 +70,16 @@ class CreateCampaignTest extends TestCase
         $this->doesntExpectJobs(ProcessCampaignList::class);
         $this->assertTrue($this->response->isOk());
         $this->seeJson([
-                    "name"=>$campaign->name,
-                    "company_id"=>$user->company_id,
-                    "description"=>$campaign->description,
-                    "message"=>$campaign->message,
-                    "options"=>json_decode($campaign->options),
-                    "status"=>'importing',
-                    "locale"=>$campaign->locale,
-                ]);
+            "name"=>$campaign->name,
+            "company_id"=>$user->company_id,
+            "description"=>$campaign->description,
+            "message"=>$campaign->message,
+            "status"=>'importing',
+            "locale"=>$campaign->locale,
+        ]);
+        $this->seeJsonStructure([
+            'options' => ['*'=>['digit','label', 'message','thank_you_message']]
+        ]);
     }
 
     /** @test */

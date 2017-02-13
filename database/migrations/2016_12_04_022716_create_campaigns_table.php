@@ -19,10 +19,19 @@ class CreateCampaignsTable extends Migration
             $table->string('name',100);
             $table->string('description',500);
             $table->text('message');
-            $table->string('options', 2000)->default('[]');
             $table->string('locale',10);
+            $table->boolean('list_content_processed')->default(0);
+            $table->integer('phone_number_count')->default(0);
             $table->string('status',20)->notNull();
+
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+
+            $table->string('list_path_local')->nullable();
+            $table->string('list_path_remote')->nullable();
+
             $table->timestamps();
+
         });
     }
 

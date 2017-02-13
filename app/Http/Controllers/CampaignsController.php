@@ -3,17 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Campaigns\Campaign;
-use App\Campaigns\CampaignPhoneNumbers;
+use App\Campaigns\CampaignPhoneNumber;
 use Illuminate\Http\Request;
 
 class CampaignsController extends Controller
 {
 
+
     //TODO NOT TESTED!!!!!
     //TODO create a transformer
-    public function index(Campaign $campaignModel)
+    /**
+     * @var Campaign
+     */
+    private $campaignModel;
+
+    /**
+     * CampaignsController constructor.
+     */
+    public function __construct(Campaign $campaignModel)
     {
-        $campaigns = $campaignModel->where('company_id', \Auth::user()->company_id)
+        $this->campaignModel = $campaignModel;
+    }
+
+    public function index()
+    {
+        $campaigns = $this->campaignModel->where('company_id', \Auth::user()->company_id)
             ->orderBy('completed_at', 'desc')
             ->get();
         foreach ($campaigns as $campaign) {
@@ -21,12 +35,13 @@ class CampaignsController extends Controller
         }
         return $campaigns;
     }
-    public function show($id, Campaign $campaignModel)
+    public function show($id)
     {
-        $campaign = $campaignModel->find($id);
+        $campaign = $this->campaignModel->with('options')->find($id);
         $this->checkRights($campaign->company_id);
 
         $campaign->formatData();
+        $campaign->updateResults();
 
         return response()->json($campaign);
     }
@@ -61,13 +76,13 @@ class CampaignsController extends Controller
         return $campaign;
     }
 
-    public function callClientAnswer($campaign_id, $campaign_number_id, Campaign $campaignModel, CampaignPhoneNumbers $campaignPhoneNumberModel)
+    public function callClientAnswer($campaign_id, $campaign_number_id,  CampaignPhoneNumber $campaignPhoneNumberModel)
     {
-        $campaign = $campaignModel->find($campaign_id);
+        $campaign = $this->campaignModel->find($campaign_id);
 
         // Find and update the campaign phone number. Set status to "Call in progress"
         $campaign_phone_number = $campaignPhoneNumberModel->find($campaign_number_id);
-        $campaign_phone_number->call_status_id = config('aj.call_statuses')['call_in_progress']['id'];
+        $campaign_phone_number->call_status_id = config('aj.call_statuses_by_keyword')['call_in_progress']['id'];
         $campaign_phone_number->save();
 
         // Form the spoken message out of the main message plus the options
@@ -98,14 +113,14 @@ class CampaignsController extends Controller
         return $response;
     }
 
-    public function callReceiveClientInput($campaign_id, $campaign_number_id, Campaign $campaignModel, CampaignPhoneNumbers $campaignPhoneNumberModel, Request $request)
+    public function callReceiveClientInput($campaign_id, $campaign_number_id,  CampaignPhoneNumber $campaignPhoneNumberModel, Request $request)
     {
-        $campaign = $campaignModel->find($campaign_id);
+        $campaign = $this->campaignModel->find($campaign_id);
         $campaign_phone_number = $campaignPhoneNumberModel->find($campaign_number_id);
 
         // Only save the incoming Digit if the call is currently in process
         // Just as some extra protection
-        if ($campaign_phone_number->call_status_id != config('aj.call_statuses')['call_in_progress']['id']){
+        if ($campaign_phone_number->call_status_id != config('aj.call_statuses_by_keyword')['call_in_progress']['id']){
             return "Call not active";
         }
 
@@ -134,8 +149,8 @@ class CampaignsController extends Controller
         }
 
         // Find and update the campaign phone number. Set status to "Call in progress"
-        $campaign_phone_number->call_status_id = config('aj.call_statuses')['call_completed']['id'];
-        $campaign_phone_number->client_response = $selected_digit;
+        $campaign_phone_number->call_status_id = config('aj.call_statuses_by_keyword')['call_completed']['id'];
+        $campaign_phone_number->digit = $selected_digit;
         $campaign_phone_number->save();
 
         $twiml->say($thank_you_message, $speak_options);
@@ -151,6 +166,26 @@ class CampaignsController extends Controller
         return "Ok";
     }
 
+    public function results($id)
+    {
+        $campaign = $this->campaignModel->find($id);
+        $this->checkRights($campaign->company_id);
+
+
+        $results = \DB::table('campaign_phone_numbers')
+            ->where('campaign_id',$campaign->id)
+            ->select('phone_number','digit','campaign_id','call_status_id')
+            ->get();
+
+        foreach ($results as $result) {
+            $result->status = config('aj.call_statuses_by_id')[$result->call_status_id]['label'];
+            if (!$result->digit){
+                $result->digit = "Didn't respond";
+            }
+        }
+
+        return $results;
+    }
     public function downloadResults($campaign_id, $digit)
     {
 

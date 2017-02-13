@@ -44,8 +44,8 @@ class ProcessCampaignListTest extends TestCase
         // Assert
         $inserted_rows_count = $campaign->phoneNumbers()
             ->whereIn('phone_number',$rows)
-            ->where('call_status_id',config('aj.call_statuses')['not_called']['id'])
-            ->where('client_response','')
+            ->where('call_status_id',config('aj.call_statuses_by_keyword')['not_called']['id'])
+            ->where('digit','')
             ->where('call_hangup_status','')
             ->count();
         $this->assertEquals(5, $inserted_rows_count);
@@ -53,6 +53,7 @@ class ProcessCampaignListTest extends TestCase
         $campaign = Campaign::find($campaign->id);
         $this->assertTrue($campaign->list_content_processed);
         $this->assertEquals('ready',$campaign->status);
+        $this->assertEquals(5,$campaign->phone_number_count);
 
         //Clean up
         Storage::delete($campaign->list_path_local);
@@ -87,8 +88,8 @@ class ProcessCampaignListTest extends TestCase
         // Assert
         $inserted_rows_count = $campaign->phoneNumbers()
             ->whereIn('phone_number',$rows)
-            ->where('call_status_id',config('aj.call_statuses')['not_called']['id'])
-            ->where('client_response','')
+            ->where('call_status_id',config('aj.call_statuses_by_keyword')['not_called']['id'])
+            ->where('digit','')
             ->where('call_hangup_status','')
             ->count();
         $this->assertEquals(1003, $inserted_rows_count);

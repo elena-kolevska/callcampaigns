@@ -1,14 +1,13 @@
 <?php
 
 use App\Campaigns\Campaign;
-use App\Campaigns\CampaignOption;
 use App\Campaigns\CampaignPhoneNumber;
 use App\User;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class ViewCampaignTest extends TestCase
+class ViewCampaignResultsTest extends TestCase
 {
     use DatabaseMigrations;
     use WithoutMiddleware;
@@ -26,20 +25,13 @@ class ViewCampaignTest extends TestCase
             'company_id' => $user->company_id,
             'status' => 'completed'
         ]);
-        for($i=0; $i < 5; $i++){
-            $option = factory(CampaignOption::class)->make([
-                'count' => $faker->randomNumber,
-            ]);
-            $campaign->options()->save($option);
-        }
-
         //Add 5 phone numbers in campaign
         $campaign_phone_numbers = [
             [
                 'phone_number' => $faker->e164PhoneNumber,
                 'campaign_id' => $campaign->id,
                 'call_status_id' => config('aj.call_statuses_by_keyword')['call_completed']['id'],
-                'digit' => '1',
+                'digit' => '',
                 'call_hangup_status' => '',
             ],
             [
@@ -81,33 +73,18 @@ class ViewCampaignTest extends TestCase
         ];
         CampaignPhoneNumber::insert($campaign_phone_numbers);
 
+        foreach ($campaign_phone_numbers as $campaign_phone_number) {
+            $expected_json_response[] = [
+                'phone_number' => $campaign_phone_number['phone_number'],
+                'campaign_id' => $campaign->id,
+                'digit' => ($campaign_phone_number['digit'] !== '') ? $campaign_phone_number['digit'] : "Didn't respond",
+            ];
+        }
 
-        $this->json('GET', 'api/v1/campaigns/'. $campaign->id);
-
-        // We do this so we can easily get the options by digit
-        $campaign->formatData();
-
-        $expected_campaign_result = [
-            ['count'=>3, 'digit'=>1, "label" => $campaign->options_by_digit[1]],
-            ['count'=>2, 'digit'=>2, "label" => $campaign->options_by_digit[2]],
-            ['count'=>1, 'digit'=>3, "label" => $campaign->options_by_digit[3]],
-        ];
+        $this->json('GET', 'api/v1/campaigns/'. $campaign->id . '/results');
 
         $this->assertTrue($this->response->isOk());
 
-        $this->seeJsonSubset([
-                    "company_id"=>$campaign->company_id,
-                    "name"=>$campaign->name,
-                    "description"=>$campaign->description,
-                    "message"=>$campaign->message,
-                    "locale"=>$campaign->locale,
-//                    "options"=>$campaign->options,
-                    "human_readable_status"=>'Completed',
-                ]);
-        $this->seeJsonStructure([
-            'options' => ['*'=>['digit','label', 'message','thank_you_message']]
-        ]);
-
+        $this->seeJsonSubset($expected_json_response);
     }
-
 }

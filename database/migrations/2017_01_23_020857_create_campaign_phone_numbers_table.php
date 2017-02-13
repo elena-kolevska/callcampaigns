@@ -18,8 +18,8 @@ class CreateCampaignPhoneNumbersTable extends Migration
             $table->unsignedInteger('campaign_id');
             $table->string('phone_number',15);
             $table->smallInteger('call_status_id')->default(0);
-            $table->string('client_response',1);
-            $table->string('call_hangup_status',20);
+            $table->string('digit',10);
+            $table->string('call_hangup_status',20)->default('');
         });
     }
 

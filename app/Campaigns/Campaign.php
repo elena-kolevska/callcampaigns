@@ -16,12 +16,32 @@ class Campaign extends Model
         ];
 
     protected $guarded = [];
-    protected $fillable = ['company_id', 'name','description', 'locale', 'message', 'options', 'list_path_local','list_path_remote', 'status'];
+    protected $fillable = ['company_id', 'name','description', 'locale', 'message', 'list_path_local','list_path_remote', 'status', 'started_at', 'completed_at'];
     protected $casts = [
         'id' => 'integer',
         'company_id' => 'integer',
         'list_content_processed' => 'boolean'
     ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+    public function options()
+    {
+        return $this->hasMany('App\Campaigns\CampaignOption');
+    }
+
+    public function phoneNumbers()
+    {
+        return $this->hasMany('App\Campaigns\CampaignPhoneNumber');
+    }
+
+
+
+
 
     static function createNew($user, $request)
     {
@@ -37,12 +57,14 @@ class Campaign extends Model
         }
 
         $data = $request->only(['name','description','locale','message','options']);
+
         $data['list_path_local'] = $file_path;
         $data['user_id'] = $user->id;
         $data['company_id'] = $user->company_id;
         $data['status'] = 'importing';
 
         $campaign =  parent::create($data);
+        self::addCampaignOptions($data['options'], $campaign);
 
         // Queue the job of processing the list
         if ($file){
@@ -54,10 +76,32 @@ class Campaign extends Model
         return $campaign;
     }
 
-    public function phoneNumbers()
+    /**
+     * @param $options
+     * @param $campaign
+     */
+    private static function addCampaignOptions($options, $campaign)
     {
-        return $this->hasMany('App\Campaigns\CampaignPhoneNumbers');
+        // Handle no options
+        // We are receiving json_encoded options, cause that's how the frontend sends them
+        // i think it has to do with the form being multipart, but maybe i just suck at javascript
+        $options = $options??json_encode([]);
+        $options = json_decode($options, 1);
+
+        // Prepare CallOption objects:
+        $data = [];
+        foreach ($options as $option) {
+            $data[] = new \App\Campaigns\CampaignOption($option);
+        }
+
+        // Add option for people who didn't answer and for invalid answers
+        $data[] = new \App\Campaigns\CampaignOption(['digit' => 'no_response', 'label' => "Didn't answer"]);
+        $data[] = new \App\Campaigns\CampaignOption(['digit' => 'invalid_answer', 'label' => "Invalid answer"]);
+
+        $campaign->options()->saveMany($data);
     }
+
+
 
     public function start()
     {
@@ -65,70 +109,74 @@ class Campaign extends Model
         dispatch($job);
 
         $this->status = 'calling';
+        $this->started_at = \Carbon\Carbon::now();
     }
-
-
-
 
 
     // Data viewing
     public function formatData()
     {
+        $this->setLabels();
         $this->setHumanReadableStatus();
-        $this->setOptions();
-        $this->setOptionsById();
-        $this->setResults();
+//        $this->setOptionsById();
+
     }
 
-    public function setOptions()
-    {
-        $this->options = json_decode($this->options);
-    }
-
-    /**
-     *  We use this to show the option label instead of just showing the digit
-     */
-    public function setOptionsById()
-    {
-        $options_by_digit[0] = "Didn't respond";
-        foreach ($this->options as $option) {
-            $options_by_digit[$option->digit] = $option->label ?? $option->message;
-        }
-        $this->options_by_digit = $options_by_digit;
-    }
-
+    //TODO Unit test
     public function setHumanReadableStatus()
     {
         $this->human_readable_status = self::STATUSES[$this->status];
     }
 
-    public function setResults()
+
+    /**
+     * Used for easy generation of chart.js charts
+     *
+     * @return $this
+     */
+    public function setLabels()
     {
-        $this->result = [];
-        $report = [];
         $report_labels = [];
         $report_data = [];
 
-        $results = $this->phoneNumbers()
-            ->where('call_status_id', config('aj.call_statuses')['call_completed']['id'])
-            ->select('client_response', \DB::raw('count(*) as count'))
-            ->groupBy('client_response')
-            ->orderBy('client_response')
-            ->get();
-
-        foreach ($results as $result) {
-            $report[] = [
-                'digit' => (int) $result->client_response,
-                'label' => $this->options_by_digit[$result->client_response] ?? "Didn't respond",
-                'count' => (int) $result->count,
-            ];
-            $report_labels[] = $this->options_by_digit[$result->client_response] ?? "Pressed {$result->client_response}";
-            $report_data[] = (int) $result->count;
+        foreach ($this->options as $option){
+            $report_labels[] = $option->label;
+            $report_data[] = (int) $option->count;
         }
 
-        $this->result = $report;
         $this->report_labels = $report_labels;
         $this->report_data = $report_data;
+
+        return $this;
     }
 
+    public function updateResults()
+    {
+        $results = $this->phoneNumbers()
+            ->where('call_status_id',3)  // We only check calls that have been answered by the customers
+            ->groupBy('call_status_id')
+            ->groupBy('digit')
+            ->select(\DB::raw('count(*) as count'), 'digit')
+            ->get();
+
+        $valid_options = $this->options->pluck('digit');
+        $invalid_answer_count = 0;
+        foreach ($results as $result) {
+            if (in_array($result->digit, $valid_options->toArray())){
+                $this->options()->where('digit', $result->digit)->update(['count' => $result->count]);
+            }elseif($result->digit == ''){
+                $this->options()->where('digit', 'no_response')->update(['count' => $result->count]);
+            }else{
+                $invalid_answer_count++;
+            }
+        }
+
+        // Since we can have many different invalid answers we just counted them in the for loop
+        // and now we'll insert them
+        if ($invalid_answer_count){
+            $this->options()->where('digit', 'invalid_answer')->update(['count' => $invalid_answer_count]);
+        }
+
+        return $this;
+    }
 }
